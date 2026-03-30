@@ -75,6 +75,12 @@
             alt="Logo de Partido Politico Progresemos"
             class="party-logo"
           >
+          {% elif partido.id == 9 %}
+          <img
+            src="{{ url_for('static', filename='party-logos/partido-si-creo.png') }}"
+            alt="Logo de Partido Si Creo"
+            class="party-logo"
+          >
           {% else %}
           {{ "%02d"|format(partido.id) }}
           {% endif %}
