@@ -105,6 +105,12 @@
             alt="Logo de Primero la Gente"
             class="party-logo"
           >
+          {% elif partido.id == 14 %}
+          <img
+            src="{{ url_for('static', filename='party-logos/juntos-por-el-peru.png') }}"
+            alt="Logo de Juntos por el Peru"
+            class="party-logo"
+          >
           {% else %}
           {{ "%02d"|format(partido.id) }}
           {% endif %}
