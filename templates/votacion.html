@@ -26,7 +26,17 @@
       <label class="ballot-card">
         <input type="radio" name="partido" value="{{ partido.id }}" required>
         <span class="ballot-mark"></span>
-        <div class="party-emblem">{{ "%02d"|format(partido.id) }}</div>
+        <div class="party-emblem">
+          {% if partido.id == 1 %}
+          <img
+            src="{{ url_for('static', filename='party-logos/alianza-electoral-venceremos.png') }}"
+            alt="Logo de Alianza Electoral Venceremos"
+            class="party-logo"
+          >
+          {% else %}
+          {{ "%02d"|format(partido.id) }}
+          {% endif %}
+        </div>
         <div class="party-copy">
           <strong>{{ partido.nombre }}</strong>
           <span>Sigla {{ partido.sigla }}</span>
