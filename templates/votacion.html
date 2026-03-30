@@ -87,6 +87,12 @@
             alt="Logo de Pais para Todos"
             class="party-logo"
           >
+          {% elif partido.id == 11 %}
+          <img
+            src="{{ url_for('static', filename='party-logos/frente-de-la-esperanza.jpg') }}"
+            alt="Logo de Frente de la Esperanza"
+            class="party-logo"
+          >
           {% else %}
           {{ "%02d"|format(partido.id) }}
           {% endif %}
