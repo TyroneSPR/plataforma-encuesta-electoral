@@ -45,6 +45,12 @@
             alt="Logo de Partido Civico Obras"
             class="party-logo"
           >
+          {% elif partido.id == 4 %}
+          <img
+            src="{{ url_for('static', filename='party-logos/partido-democrata-verde.png') }}"
+            alt="Logo de Partido Democrata Verde"
+            class="party-logo"
+          >
           {% else %}
           {{ "%02d"|format(partido.id) }}
           {% endif %}
