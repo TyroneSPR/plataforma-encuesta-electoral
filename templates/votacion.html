@@ -57,6 +57,12 @@
             alt="Logo de Partido del Buen Gobierno"
             class="party-logo"
           >
+          {% elif partido.id == 6 %}
+          <img
+            src="{{ url_for('static', filename='party-logos/partido-politico-peru-accion.jpg') }}"
+            alt="Logo de Partido Politico Peru Accion"
+            class="party-logo"
+          >
           {% else %}
           {{ "%02d"|format(partido.id) }}
           {% endif %}
