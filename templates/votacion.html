@@ -69,6 +69,12 @@
             alt="Logo de Partido Politico PRIN"
             class="party-logo"
           >
+          {% elif partido.id == 8 %}
+          <img
+            src="{{ url_for('static', filename='party-logos/partido-politico-progresemos.png') }}"
+            alt="Logo de Partido Politico Progresemos"
+            class="party-logo"
+          >
           {% else %}
           {{ "%02d"|format(partido.id) }}
           {% endif %}
