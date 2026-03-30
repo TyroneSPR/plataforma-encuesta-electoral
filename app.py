@@ -1,335 +1,334 @@
 import json
-import queue
-import sqlite3
-import threading
-import uuid
-from contextlib import closing
-from datetime import datetime
+import re
 from pathlib import Path
 
-from flask import Flask, Response, g, jsonify, render_template, request, send_from_directory, session
-
+from flask import Flask, redirect, render_template, request, session, url_for
 
 BASE_DIR = Path(__file__).resolve().parent
-DB_PATH = BASE_DIR / "survey.db"
-CONFIG_PATH = BASE_DIR / "election_data.json"
-SECRET_KEY = "encuesta-abril-2026-cambia-esta-clave"
+DATA_FILE = BASE_DIR / "resultados.json"
+
+app = Flask(
+    __name__,
+    template_folder=str(BASE_DIR / "templates"),
+    static_folder=str(BASE_DIR / "static"),
+)
+app.secret_key = "clave-segura-encuesta"
+
+PARTIDOS = [
+    {"id": 1, "nombre": "Alianza Electoral Venceremos", "sigla": "AEV"},
+    {"id": 2, "nombre": "Partido Patriotico del Peru", "sigla": "PPP"},
+    {"id": 3, "nombre": "Partido Civico Obras", "sigla": "PCO"},
+    {"id": 4, "nombre": "Partido Democrata Verde", "sigla": "PDV"},
+    {"id": 5, "nombre": "Partido del Buen Gobierno", "sigla": "PBG"},
+    {"id": 6, "nombre": "Partido Politico Peru Accion", "sigla": "PPA"},
+    {"id": 7, "nombre": "Partido Politico PRIN", "sigla": "PRIN"},
+    {"id": 8, "nombre": "Partido Politico Progresemos", "sigla": "PRO"},
+    {"id": 9, "nombre": "Partido Si Creo", "sigla": "SC"},
+    {"id": 10, "nombre": "Pais para Todos", "sigla": "PPT"},
+    {"id": 11, "nombre": "Frente de la Esperanza", "sigla": "FDE"},
+    {"id": 12, "nombre": "Partido Politico Peru Libre", "sigla": "PPL"},
+    {"id": 13, "nombre": "Primero la Gente", "sigla": "PLG"},
+    {"id": 14, "nombre": "Juntos por el Peru", "sigla": "JPP"},
+    {"id": 15, "nombre": "Podemos Peru", "sigla": "PP"},
+    {"id": 16, "nombre": "Partido Democrata Federal", "sigla": "PDF"},
+    {"id": 17, "nombre": "Fe en el Peru", "sigla": "FEP"},
+    {"id": 18, "nombre": "Integridad Democratica", "sigla": "ID"},
+    {"id": 19, "nombre": "Fuerza Popular", "sigla": "FP"},
+    {"id": 20, "nombre": "Alianza para el Progreso", "sigla": "APP"},
+    {"id": 21, "nombre": "Cooperacion Popular", "sigla": "CP"},
+    {"id": 22, "nombre": "Ahora Nacion", "sigla": "AN"},
+    {"id": 23, "nombre": "Libertad Popular", "sigla": "LP"},
+    {"id": 24, "nombre": "Un Camino Diferente", "sigla": "UCD"},
+    {"id": 25, "nombre": "Avanza Pais", "sigla": "AP"},
+    {"id": 26, "nombre": "Peru Moderno", "sigla": "PM"},
+    {"id": 27, "nombre": "Peru Primero", "sigla": "PP1"},
+    {"id": 28, "nombre": "Salvemos al Peru", "sigla": "SAP"},
+    {"id": 29, "nombre": "Somos Peru", "sigla": "SP"},
+    {"id": 30, "nombre": "Partido Aprista Peruano", "sigla": "PAP"},
+    {"id": 31, "nombre": "Renovacion Popular", "sigla": "RP"},
+    {"id": 32, "nombre": "Partido Democrata Unido Peru", "sigla": "PDUP"},
+    {"id": 33, "nombre": "Fuerza y Libertad", "sigla": "FYL"},
+    {"id": 34, "nombre": "Trabajadores y Emprendedores", "sigla": "PTE"},
+    {"id": 35, "nombre": "Unidad Nacional", "sigla": "UN"},
+    {"id": 36, "nombre": "Partido Morado", "sigla": "PMD"},
+]
+
+ETAPAS = [
+    {
+        "slug": "presidente",
+        "titulo": "Presidencia de la Republica",
+        "descripcion": "Seleccione la organizacion politica de su preferencia para la formula presidencial.",
+        "siguiente": "senadores",
+        "boton": "Continuar a Senadores",
+        "campo": "voto_presidente",
+        "numero": 2,
+    },
+    {
+        "slug": "senadores",
+        "titulo": "Camara de Senadores",
+        "descripcion": "Emita su voto para la representacion senatorial de alcance nacional.",
+        "siguiente": "diputados",
+        "boton": "Continuar a Diputados",
+        "campo": "voto_senadores",
+        "numero": 3,
+    },
+    {
+        "slug": "diputados",
+        "titulo": "Camara de Diputados",
+        "descripcion": "Registre su preferencia para la representacion parlamentaria correspondiente.",
+        "siguiente": "parlamento",
+        "boton": "Continuar al Parlamento Andino",
+        "campo": "voto_diputados",
+        "numero": 4,
+    },
+    {
+        "slug": "parlamento",
+        "titulo": "Parlamento Andino",
+        "descripcion": "Finalice la encuesta electoral con la seleccion para el Parlamento Andino.",
+        "siguiente": "gracias",
+        "boton": "Registrar voto",
+        "campo": "voto_parlamento",
+        "numero": 5,
+    },
+]
+
+CARGOS = [
+    ("voto_presidente", "Presidencia"),
+    ("voto_senadores", "Senadores"),
+    ("voto_diputados", "Diputados"),
+    ("voto_parlamento", "Parlamento Andino"),
+]
 
 
-app = Flask(__name__, template_folder=str(BASE_DIR))
-app.config["SECRET_KEY"] = SECRET_KEY
-app.config["JSON_AS_ASCII"] = False
+def leer_resultados():
+    if not DATA_FILE.exists():
+        return {"votantes": []}
+    with DATA_FILE.open("r", encoding="utf-8") as archivo:
+        return json.load(archivo)
 
 
-class LiveBroadcaster:
-    def __init__(self):
-        self._listeners = set()
-        self._lock = threading.Lock()
-
-    def subscribe(self):
-        listener = queue.Queue()
-        with self._lock:
-            self._listeners.add(listener)
-        return listener
-
-    def unsubscribe(self, listener):
-        with self._lock:
-            self._listeners.discard(listener)
-
-    def publish(self, payload):
-        with self._lock:
-            listeners = list(self._listeners)
-        for listener in listeners:
-            listener.put(payload)
+def guardar_resultados(data):
+    with DATA_FILE.open("w", encoding="utf-8") as archivo:
+        json.dump(data, archivo, ensure_ascii=False, indent=2)
 
 
-broadcaster = LiveBroadcaster()
+def documento_ya_registrado(tipo_documento, documento):
+    data = leer_resultados()
+    for votante in data.get("votantes", []):
+        mismo_documento = votante.get("documento") == documento
+        mismo_tipo = votante.get("tipo_documento") == tipo_documento
+        if mismo_documento and (mismo_tipo or not votante.get("tipo_documento")):
+            return True
+    return False
 
 
-def load_config():
-    with CONFIG_PATH.open("r", encoding="utf-8") as file:
-        return json.load(file)
+def obtener_etapa(slug):
+    for etapa in ETAPAS:
+        if etapa["slug"] == slug:
+            return etapa
+    return None
 
 
-def get_db():
-    if "db" not in g:
-        g.db = sqlite3.connect(DB_PATH)
-        g.db.row_factory = sqlite3.Row
-    return g.db
+def nombre_partido(partido_id):
+    for partido in PARTIDOS:
+        if str(partido["id"]) == str(partido_id):
+            return partido["nombre"]
+    return "No registrado"
 
 
-@app.teardown_appcontext
-def close_db(_error):
-    db = g.pop("db", None)
-    if db is not None:
-        db.close()
+def requiere_registro():
+    return "votante" not in session
 
 
-def init_db():
-    with closing(sqlite3.connect(DB_PATH)) as db:
-        db.executescript(
-            """
-            CREATE TABLE IF NOT EXISTS voters (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                name TEXT NOT NULL,
-                email TEXT NOT NULL UNIQUE,
-                created_at TEXT NOT NULL
-            );
+def registrar_voto():
+    if session.get("voto_registrado"):
+        return
 
-            CREATE TABLE IF NOT EXISTS votes (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                voter_id INTEGER NOT NULL,
-                office_id TEXT NOT NULL,
-                candidate_id TEXT NOT NULL,
-                created_at TEXT NOT NULL,
-                UNIQUE(voter_id, office_id),
-                FOREIGN KEY(voter_id) REFERENCES voters(id)
-            );
-            """
-        )
-        db.commit()
+    data = leer_resultados()
+    votantes = data.get("votantes", [])
+    documento = session["votante"]["documento"]
 
+    registro = {
+        "tipo_documento": session["votante"]["tipo_documento"],
+        "documento": documento,
+        "nombre": session["votante"]["nombre"],
+        "voto_presidente": session.get("voto_presidente"),
+        "voto_senadores": session.get("voto_senadores"),
+        "voto_diputados": session.get("voto_diputados"),
+        "voto_parlamento": session.get("voto_parlamento"),
+    }
 
-def ensure_demo_data():
-    init_db()
+    actualizado = False
+    for indice, votante in enumerate(votantes):
+        if (
+            votante.get("documento") == documento
+            and votante.get("tipo_documento") == session["votante"]["tipo_documento"]
+        ):
+            votantes[indice] = registro
+            actualizado = True
+            break
 
+    if not actualizado:
+        votantes.append(registro)
 
-def current_voter():
-    voter_id = session.get("voter_id")
-    if not voter_id:
-        return None
-    row = get_db().execute(
-        "SELECT id, name, email, created_at FROM voters WHERE id = ?", (voter_id,)
-    ).fetchone()
-    return dict(row) if row else None
+    data["votantes"] = votantes
+    guardar_resultados(data)
+    session["voto_registrado"] = True
 
 
-def get_vote_status(voter_id):
-    rows = get_db().execute(
-        "SELECT office_id, candidate_id FROM votes WHERE voter_id = ?", (voter_id,)
-    ).fetchall()
-    return {row["office_id"]: row["candidate_id"] for row in rows}
+def construir_panel_resultados():
+    data = leer_resultados()
+    votantes = data.get("votantes", [])
+    total_votantes = len(votantes)
+    panel = []
 
+    for campo, titulo in CARGOS:
+        conteo = {}
+        for votante in votantes:
+            partido_id = votante.get(campo)
+            if partido_id:
+                clave = str(partido_id)
+                conteo[clave] = conteo.get(clave, 0) + 1
 
-def build_results():
-    config = load_config()
-    db = get_db()
-    total_voters = db.execute("SELECT COUNT(*) FROM voters").fetchone()[0]
-    total_votes = db.execute("SELECT COUNT(*) FROM votes").fetchone()[0]
-
-    offices = []
-    for office in config["offices"]:
-        counts = {
-            row["candidate_id"]: row["total"]
-            for row in db.execute(
-                """
-                SELECT candidate_id, COUNT(*) AS total
-                FROM votes
-                WHERE office_id = ?
-                GROUP BY candidate_id
-                """,
-                (office["id"],),
-            ).fetchall()
-        }
-        office_total = sum(counts.values())
-        candidates = []
-        for candidate in office["candidates"]:
-            votes = counts.get(candidate["id"], 0)
-            pct = round((votes / office_total * 100), 2) if office_total else 0
-            candidates.append(
+        filas = []
+        for partido in PARTIDOS:
+            votos = conteo.get(str(partido["id"]), 0)
+            porcentaje = round((votos / total_votantes) * 100, 2) if total_votantes else 0
+            filas.append(
                 {
-                    "id": candidate["id"],
-                    "name": candidate["name"],
-                    "party": candidate.get("party", ""),
-                    "list_name": candidate.get("list_name", candidate.get("party", "")),
-                    "short_name": candidate.get("short_name", candidate["name"]),
-                    "badge": candidate.get("badge", ""),
-                    "color": candidate.get("color", "#274c77"),
-                    "votes": votes,
-                    "percentage": pct,
+                    "id": partido["id"],
+                    "sigla": partido["sigla"],
+                    "nombre": partido["nombre"],
+                    "votos": votos,
+                    "porcentaje": porcentaje,
                 }
             )
-        offices.append(
+
+        filas.sort(key=lambda item: (-item["votos"], item["nombre"]))
+        lider = filas[0] if filas and filas[0]["votos"] > 0 else None
+        panel.append(
             {
-                "id": office["id"],
-                "title": office["title"],
-                "description": office.get("description", ""),
-                "total_votes": office_total,
-                "candidates": sorted(
-                    candidates, key=lambda item: (-item["votes"], item["name"])
-                ),
+                "titulo": titulo,
+                "lider": lider,
+                "resultados": [fila for fila in filas if fila["votos"] > 0][:10],
             }
         )
 
-    return {
-        "title": config["title"],
-        "subtitle": config["subtitle"],
-        "election_date": config["election_date"],
-        "updated_at": datetime.utcnow().isoformat() + "Z",
-        "summary": {
-            "registered_voters": total_voters,
-            "total_votes_cast": total_votes,
-            "offices_count": len(offices),
-        },
-        "offices": offices,
+    return {"total_votantes": total_votantes, "panel": panel}
+
+
+@app.route("/", methods=["GET", "POST"])
+def registro():
+    if request.method == "POST":
+        tipo_documento = request.form.get("tipo_documento", "").strip()
+        documento = request.form.get("documento", "").strip().upper()
+        nombre = request.form.get("nombre", "").strip()
+
+        if not tipo_documento or not documento or not nombre:
+            return render_template(
+                "registro.html",
+                error="Seleccione un tipo de documento, ingrese el numero correspondiente y escriba su nombre.",
+                progreso=1,
+            )
+
+        if tipo_documento == "dni":
+            if not re.fullmatch(r"\d{8}", documento):
+                return render_template(
+                    "registro.html",
+                    error="El DNI debe contener exactamente 8 digitos numericos.",
+                    progreso=1,
+                )
+        elif tipo_documento == "ce":
+            if not re.fullmatch(r"\d{9}", documento):
+                return render_template(
+                    "registro.html",
+                    error="El Carnet de Extranjeria debe contener exactamente 9 digitos numericos.",
+                    progreso=1,
+                )
+        else:
+            return render_template(
+                "registro.html",
+                error="Seleccione un tipo de documento valido.",
+                progreso=1,
+            )
+
+        if documento_ya_registrado(tipo_documento, documento):
+            return render_template(
+                "registro.html",
+                error="Este documento ya fue utilizado en una votacion registrada.",
+                progreso=1,
+            )
+
+        session.clear()
+        session["votante"] = {
+            "tipo_documento": tipo_documento,
+            "documento": documento,
+            "nombre": nombre,
+        }
+        session["voto_registrado"] = False
+        return redirect(url_for("votacion", etapa_slug="presidente"))
+
+    return render_template("registro.html", error=None, progreso=1)
+
+
+@app.route("/<etapa_slug>", methods=["GET", "POST"])
+def votacion(etapa_slug):
+    etapa = obtener_etapa(etapa_slug)
+    if etapa is None:
+        return redirect(url_for("registro"))
+
+    if requiere_registro():
+        return redirect(url_for("registro"))
+
+    if request.method == "POST":
+        opcion = request.form.get("partido")
+        if not opcion:
+            return render_template(
+                "votacion.html",
+                etapa=etapa,
+                partidos=PARTIDOS,
+                progreso=etapa["numero"],
+                error="Seleccione una organizacion politica para continuar.",
+                votante=session["votante"],
+            )
+
+        session[etapa["campo"]] = opcion
+        if etapa["siguiente"] == "gracias":
+            return redirect(url_for("gracias"))
+        return redirect(url_for("votacion", etapa_slug=etapa["siguiente"]))
+
+    return render_template(
+        "votacion.html",
+        etapa=etapa,
+        partidos=PARTIDOS,
+        progreso=etapa["numero"],
+        error=None,
+        votante=session["votante"],
+    )
+
+
+@app.route("/gracias")
+def gracias():
+    if requiere_registro():
+        return redirect(url_for("registro"))
+
+    registrar_voto()
+    panel_resultados = construir_panel_resultados()
+
+    resumen = {
+        "Presidencia": nombre_partido(session.get("voto_presidente")),
+        "Senadores": nombre_partido(session.get("voto_senadores")),
+        "Diputados": nombre_partido(session.get("voto_diputados")),
+        "Parlamento Andino": nombre_partido(session.get("voto_parlamento")),
     }
-
-
-def build_bootstrap():
-    config = load_config()
-    voter = current_voter()
-    selections = get_vote_status(voter["id"]) if voter else {}
-    return {
-        "config": config,
-        "results": build_results(),
-        "voter": voter,
-        "selections": selections,
-    }
-
-
-@app.get("/")
-def index():
-    return render_template("index.html")
-
-
-@app.get("/dashboard")
-def dashboard():
-    return render_template("dashboard.html")
-
-
-@app.get("/styles.css")
-def styles():
-    return send_from_directory(BASE_DIR, "styles.css", mimetype="text/css")
-
-
-@app.get("/app.js")
-def app_script():
-    return send_from_directory(BASE_DIR, "app.js", mimetype="application/javascript")
-
-
-@app.get("/dashboard.js")
-def dashboard_script():
-    return send_from_directory(BASE_DIR, "dashboard.js", mimetype="application/javascript")
-
-
-@app.get("/api/bootstrap")
-def bootstrap():
-    return jsonify(build_bootstrap())
-
-
-@app.post("/api/register")
-def register():
-    payload = request.get_json(force=True)
-    name = (payload.get("name") or "").strip()
-    email = (payload.get("email") or "").strip().lower()
-
-    if not name or not email or "@" not in email:
-        return jsonify({"error": "Ingresa un nombre y un correo valido."}), 400
-
-    db = get_db()
-    existing = db.execute(
-        "SELECT id, name, email, created_at FROM voters WHERE email = ?", (email,)
-    ).fetchone()
-
-    if existing:
-        voter_id = existing["id"]
-        if existing["name"] != name:
-            db.execute("UPDATE voters SET name = ? WHERE id = ?", (name, voter_id))
-            db.commit()
-        voter = dict(
-            db.execute(
-                "SELECT id, name, email, created_at FROM voters WHERE id = ?", (voter_id,)
-            ).fetchone()
-        )
-    else:
-        db.execute(
-            "INSERT INTO voters (name, email, created_at) VALUES (?, ?, ?)",
-            (name, email, datetime.utcnow().isoformat() + "Z"),
-        )
-        db.commit()
-        voter_id = db.execute("SELECT id FROM voters WHERE email = ?", (email,)).fetchone()[0]
-        voter = dict(
-            db.execute(
-                "SELECT id, name, email, created_at FROM voters WHERE id = ?", (voter_id,)
-            ).fetchone()
-        )
-
-    session["voter_id"] = voter["id"]
-    return jsonify({"voter": voter, "selections": get_vote_status(voter["id"])})
-
-
-@app.post("/api/vote")
-def cast_vote():
-    voter = current_voter()
-    if not voter:
-        return jsonify({"error": "Debes registrarte antes de votar."}), 401
-
-    payload = request.get_json(force=True)
-    selections = payload.get("selections") or {}
-    config = load_config()
-    valid_offices = {office["id"]: office for office in config["offices"]}
-
-    if set(selections.keys()) != set(valid_offices.keys()):
-        return jsonify({"error": "Debes elegir una opcion para cada cargo."}), 400
-
-    for office_id, candidate_id in selections.items():
-        valid_candidates = {candidate["id"] for candidate in valid_offices[office_id]["candidates"]}
-        if candidate_id not in valid_candidates:
-            return jsonify({"error": "Se detecto una opcion invalida."}), 400
-
-    db = get_db()
-    existing = get_vote_status(voter["id"])
-    if existing:
-        return jsonify({"error": "Este correo ya registro sus votos."}), 409
-
-    timestamp = datetime.utcnow().isoformat() + "Z"
-    for office_id, candidate_id in selections.items():
-        db.execute(
-            """
-            INSERT INTO votes (voter_id, office_id, candidate_id, created_at)
-            VALUES (?, ?, ?, ?)
-            """,
-            (voter["id"], office_id, candidate_id, timestamp),
-        )
-    db.commit()
-
-    payload = build_results()
-    broadcaster.publish(payload)
-    return jsonify({"ok": True, "results": payload})
-
-
-@app.get("/api/results")
-def results():
-    return jsonify(build_results())
-
-
-@app.get("/api/stream")
-def stream():
-    listener = broadcaster.subscribe()
-
-    def event_stream():
-        initial = build_results()
-        yield f"event: snapshot\ndata: {json.dumps(initial, ensure_ascii=False)}\n\n"
-        try:
-            while True:
-                try:
-                    payload = listener.get(timeout=30)
-                    yield f"event: snapshot\ndata: {json.dumps(payload, ensure_ascii=False)}\n\n"
-                except queue.Empty:
-                    heartbeat = {"id": str(uuid.uuid4())}
-                    yield f"event: heartbeat\ndata: {json.dumps(heartbeat)}\n\n"
-        finally:
-            broadcaster.unsubscribe(listener)
-
-    headers = {
-        "Cache-Control": "no-cache",
-        "X-Accel-Buffering": "no",
-    }
-    return Response(event_stream(), mimetype="text/event-stream", headers=headers)
-
-
-ensure_demo_data()
+    return render_template(
+        "gracias.html",
+        progreso=5,
+        votante=session["votante"],
+        resumen=resumen,
+        panel_resultados=panel_resultados,
+    )
 
 
 if __name__ == "__main__":
-    app.run(debug=True, host="0.0.0.0", port=5000, threaded=True)
+    app.run(debug=True, host="127.0.0.1", port=5000)

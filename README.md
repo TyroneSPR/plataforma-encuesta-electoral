@@ -1,55 +1,36 @@
-# Encuesta Electoral En Vivo
+# Plataforma Encuesta Electoral
 
-Aplicacion web local hecha con Flask para registrar participantes por nombre y correo, recibir un voto por persona y mostrar resultados en vivo mientras la encuesta sigue abierta.
+Aplicacion web en Flask con flujo secuencial de votacion tipo encuesta electoral.
 
-La estructura principal ahora esta plana en la raiz del proyecto:
+## Flujo actual
 
-- `index.html`
-- `dashboard.html`
-- `styles.css`
-- `app.js`
-- `dashboard.js`
+- Registro del elector con `tipo de documento`, `numero de documento` y `nombre`
+- Validacion de `DNI` y `Carnet de Extranjeria`
+- Bloqueo de documentos repetidos
+- Votacion por etapas:
+  - Presidencia
+  - Senadores
+  - Diputados
+  - Parlamento Andino
+- Pantalla final con resumen del voto y panel de resultados acumulados
+
+## Estructura principal
+
 - `app.py`
+- `templates/`
+- `static/`
 
-## Que incluye
-
-- Registro simple con `nombre + correo`
-- Un voto por correo para cada cargo
-- Resultados y porcentajes en vivo
-- Dashboard separado para proyectar o monitorear
-- Persistencia local en `SQLite`
-
-## Como ejecutarlo
+## Ejecucion
 
 1. Abre una terminal en `C:\Users\Clive\Desktop\Encuesta`
-2. Si hace falta, instala dependencias con `python -m pip install -r requirements.txt`
-3. Ejecuta `python app.py`
-4. Abre `http://127.0.0.1:5000`
-5. Si quieres el tablero aparte, abre `http://127.0.0.1:5000/dashboard`
+2. Instala dependencias:
+   `python -m pip install -r requirements.txt`
+3. Ejecuta la aplicacion:
+   `python app.py`
+4. Abre:
+   `http://127.0.0.1:5000`
 
-## Donde editar las opciones
+## Archivos de datos
 
-Los cargos y candidatos estan en:
-
-- `C:\Users\Clive\Desktop\Encuesta\election_data.json`
-
-Ahora mismo deje listas de ejemplo para:
-
-- Presidencia
-- Senadores nacionales
-- Senadores regionales
-- Diputados
-- Parlamento Andino
-
-Si quieres, en el siguiente paso puedo reemplazar esas listas por los nombres reales de tu papeleta.
-
-## Nota sobre el PDF
-
-Revise el archivo `CEDULA DE VOTACION 2026  41X64.pdf` y el texto extraible solo confirma encabezados como:
-
-- A nivel nacional
-- A nivel regional
-- Diputados a nivel regional
-- Parlamento Andino
-
-No aparecieron nombres de candidatos o listas en el texto del PDF, por eso las opciones del JSON quedaron como plantillas editables.
+- `resultados.json` se genera automaticamente cuando se registran votos
+- Los logos de partidos viven en `static/party-logos/`
