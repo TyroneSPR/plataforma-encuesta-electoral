@@ -33,6 +33,12 @@
             alt="Logo de Alianza Electoral Venceremos"
             class="party-logo"
           >
+          {% elif partido.id == 2 %}
+          <img
+            src="{{ url_for('static', filename='party-logos/partido-patriotico-del-peru.jpg') }}"
+            alt="Logo de Partido Patriotico del Peru"
+            class="party-logo"
+          >
           {% else %}
           {{ "%02d"|format(partido.id) }}
           {% endif %}
