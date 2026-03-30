@@ -135,6 +135,12 @@
             alt="Logo de Integridad Democratica"
             class="party-logo"
           >
+          {% elif partido.id == 19 %}
+          <img
+            src="{{ url_for('static', filename='party-logos/fuerza-popular.png') }}"
+            alt="Logo de Fuerza Popular"
+            class="party-logo"
+          >
           {% else %}
           {{ "%02d"|format(partido.id) }}
           {% endif %}
