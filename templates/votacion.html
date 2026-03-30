@@ -111,6 +111,12 @@
             alt="Logo de Juntos por el Peru"
             class="party-logo"
           >
+          {% elif partido.id == 15 %}
+          <img
+            src="{{ url_for('static', filename='party-logos/podemos-peru.jpg') }}"
+            alt="Logo de Podemos Peru"
+            class="party-logo"
+          >
           {% else %}
           {{ "%02d"|format(partido.id) }}
           {% endif %}
