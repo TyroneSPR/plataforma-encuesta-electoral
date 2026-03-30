@@ -129,6 +129,12 @@
             alt="Logo de Fe en el Peru"
             class="party-logo"
           >
+          {% elif partido.id == 18 %}
+          <img
+            src="{{ url_for('static', filename='party-logos/integridad-democratica.png') }}"
+            alt="Logo de Integridad Democratica"
+            class="party-logo"
+          >
           {% else %}
           {{ "%02d"|format(partido.id) }}
           {% endif %}
