@@ -93,6 +93,12 @@
             alt="Logo de Frente de la Esperanza"
             class="party-logo"
           >
+          {% elif partido.id == 12 %}
+          <img
+            src="{{ url_for('static', filename='party-logos/partido-politico-peru-libre.png') }}"
+            alt="Logo de Partido Politico Peru Libre"
+            class="party-logo"
+          >
           {% else %}
           {{ "%02d"|format(partido.id) }}
           {% endif %}
