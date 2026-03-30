@@ -63,6 +63,12 @@
             alt="Logo de Partido Politico Peru Accion"
             class="party-logo"
           >
+          {% elif partido.id == 7 %}
+          <img
+            src="{{ url_for('static', filename='party-logos/partido-politico-prin.png') }}"
+            alt="Logo de Partido Politico PRIN"
+            class="party-logo"
+          >
           {% else %}
           {{ "%02d"|format(partido.id) }}
           {% endif %}
