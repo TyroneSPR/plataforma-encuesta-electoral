@@ -81,6 +81,12 @@
             alt="Logo de Partido Si Creo"
             class="party-logo"
           >
+          {% elif partido.id == 10 %}
+          <img
+            src="{{ url_for('static', filename='party-logos/pais-para-todos.png') }}"
+            alt="Logo de Pais para Todos"
+            class="party-logo"
+          >
           {% else %}
           {{ "%02d"|format(partido.id) }}
           {% endif %}
