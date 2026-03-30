@@ -99,6 +99,12 @@
             alt="Logo de Partido Politico Peru Libre"
             class="party-logo"
           >
+          {% elif partido.id == 13 %}
+          <img
+            src="{{ url_for('static', filename='party-logos/primero-la-gente.jpg') }}"
+            alt="Logo de Primero la Gente"
+            class="party-logo"
+          >
           {% else %}
           {{ "%02d"|format(partido.id) }}
           {% endif %}
