@@ -39,6 +39,12 @@
             alt="Logo de Partido Patriotico del Peru"
             class="party-logo"
           >
+          {% elif partido.id == 3 %}
+          <img
+            src="{{ url_for('static', filename='party-logos/partido-civico-obras.png') }}"
+            alt="Logo de Partido Civico Obras"
+            class="party-logo"
+          >
           {% else %}
           {{ "%02d"|format(partido.id) }}
           {% endif %}
