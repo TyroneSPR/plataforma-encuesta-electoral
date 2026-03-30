@@ -1,5 +1,41 @@
 {% extends "base.html" %}
 {% set titulo_pagina = etapa.titulo %}
+{% set party_logos = {
+  1: "party-logos/36-Venceremos.png",
+  2: "party-logos/20-Partido-Patriotico-del-Peru.jpg",
+  3: "party-logos/11-Partido-Civico-OBRAS.png",
+  4: "party-logos/14-Democrata-Verde.png",
+  5: "party-logos/12-Partido-del-Buen-Gobierno.png",
+  6: "party-logos/23-Peru-Accion.jpg",
+  7: "party-logos/25-Prin.png",
+  8: "party-logos/30-Progresemos.png",
+  9: "party-logos/26-Si-Creo.png",
+  10: "party-logos/19-Pais-para-Todos.png",
+  11: "party-logos/17-Frente-de-la-Esperanza.jpg",
+  12: "party-logos/22-Peru-Libre.png",
+  13: "party-logos/29-Primero-la-Gente.jpg",
+  14: "party-logos/8-Juntos-por-el-Peru.png",
+  15: "party-logos/28-Podemos-Peru.jpg",
+  16: "party-logos/15-Peru-Federal.jpg",
+  17: "party-logos/5-Partido-Politico-Fe-en-el-Peru.png",
+  18: "party-logos/21-Integridad-Democratica.png",
+  19: "party-logos/7-Fuerza-Popular.png",
+  20: "party-logos/3-Alianza-para-el-Progreso.png",
+  21: "party-logos/33-Cooperacion-Poupular.jpg",
+  22: "party-logos/2-Ahora-Nacion.jpg",
+  23: "party-logos/9-Libertad-Popular.jpg",
+  24: "party-logos/32-Un-Camino-Diferente.jpg",
+  25: "party-logos/4-Avanza-Pais.png",
+  26: "party-logos/27-Peru-Moderno.jpg",
+  27: "party-logos/24-Peru-Primero.png",
+  28: "party-logos/31-Salvemos-al-Peru.jpg",
+  29: "party-logos/16-Somos-Peru.png",
+  32: "party-logos/13-Unido-Peru.png",
+  33: "party-logos/37-Fuerza-y-Libertad.png",
+  34: "party-logos/34-PTE-Peru.png",
+  35: "party-logos/35-Unidad-Nacional.png",
+  36: "party-logos/18-Partido-Morado.png"
+} %}
 
 {% block content %}
 <section class="card">
@@ -23,32 +59,15 @@
   <form method="POST">
     <div class="ballot-grid">
       {% for partido in partidos %}
+      {% set logo = party_logos.get(partido.id) %}
       <label class="ballot-card">
         <input type="radio" name="partido" value="{{ partido.id }}" required>
         <span class="ballot-mark"></span>
         <div class="party-emblem">
-          {% if partido.id == 1 %}
+          {% if logo %}
           <img
-            src="{{ url_for('static', filename='party-logos/alianza-electoral-venceremos.png') }}"
-            alt="Logo de Alianza Electoral Venceremos"
-            class="party-logo"
-          >
-          {% elif partido.id == 2 %}
-          <img
-            src="{{ url_for('static', filename='party-logos/partido-patriotico-del-peru.jpg') }}"
-            alt="Logo de Partido Patriotico del Peru"
-            class="party-logo"
-          >
-          {% elif partido.id == 3 %}
-          <img
-            src="{{ url_for('static', filename='party-logos/11-Partido-Civico-OBRAS.png') }}"
-            alt="Logo de Partido Civico Obras"
-            class="party-logo"
-          >
-          {% elif partido.id == 4 %}
-          <img
-            src="{{ url_for('static', filename='party-logos/democrata-verde.png') }}"
-            alt="Logo de Partido Democrata Verde"
+            src="{{ url_for('static', filename=logo) }}"
+            alt="Logo de {{ partido.nombre }}"
             class="party-logo"
           >
           {% else %}
