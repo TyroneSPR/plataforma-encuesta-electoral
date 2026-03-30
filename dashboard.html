@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Dashboard en vivo</title>
+    <link rel="stylesheet" href="/styles.css">
+  </head>
+  <body class="dashboard-body ballot-body">
+    <main class="dashboard-layout">
+      <section class="hero hero-shell slim">
+        <div class="hero-copy">
+          <p class="eyebrow">Centro de control electoral</p>
+          <h1>Dashboard de votos por partido</h1>
+          <p class="lead">Vista profesional para monitoreo publico o interno mientras la encuesta sigue abierta.</p>
+        </div>
+        <a class="dashboard-link" href="/">Ir a votacion</a>
+      </section>
+
+      <section class="panel dashboard-panel">
+        <div class="panel-head">
+          <div>
+            <p class="section-tag">Lectura consolidada</p>
+            <h2>Estado general</h2>
+          </div>
+          <span id="dashboard-live-indicator" class="chip live">En vivo</span>
+        </div>
+        <div class="stats" id="dashboard-summary-cards"></div>
+        <div class="results-grid" id="dashboard-results-grid"></div>
+      </section>
+    </main>
+
+    <script src="/dashboard.js"></script>
+  </body>
+</html>

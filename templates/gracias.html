@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+{% set titulo_pagina = "Proceso completado" %}
+
+{% block content %}
+<section class="card">
+  <div class="card-header compact">
+    <span class="section-tag">Paso 5</span>
+    <h2>Votacion registrada correctamente</h2>
+    <p>La encuesta ha concluido. A continuacion se muestra el resumen de selecciones emitidas.</p>
+  </div>
+
+  <div class="summary-header">
+    <div>
+      <span class="mini-label">Elector</span>
+      <strong>{{ votante.nombre }}</strong>
+    </div>
+    <div>
+      <span class="mini-label">Documento</span>
+      <strong>{{ votante.tipo_documento|upper }} - {{ votante.documento }}</strong>
+    </div>
+  </div>
+
+  <div class="summary-list">
+    {% for cargo, partido in resumen.items() %}
+    <article class="summary-item">
+      <span>{{ cargo }}</span>
+      <strong>{{ partido }}</strong>
+    </article>
+    {% endfor %}
+  </div>
+
+  <section class="results-panel">
+    <div class="results-header">
+      <div>
+        <span class="mini-label">Panel de resultados</span>
+        <h3>Consolidado general de votos registrados</h3>
+      </div>
+      <div class="results-total">
+        <span>Total de votantes</span>
+        <strong>{{ panel_resultados.total_votantes }}</strong>
+      </div>
+    </div>
+
+    <div class="results-grid">
+      {% for bloque in panel_resultados.panel %}
+      <article class="result-card">
+        <div class="result-card-header">
+          <div>
+            <span class="mini-label">{{ bloque.titulo }}</span>
+            {% if bloque.lider %}
+            <strong>{{ bloque.lider.nombre }}</strong>
+            <small>{{ bloque.lider.votos }} votos · {{ "%.2f"|format(bloque.lider.porcentaje) }}%</small>
+            {% else %}
+            <strong>Sin votos registrados</strong>
+            <small>Este cargo aun no tiene resultados acumulados.</small>
+            {% endif %}
+          </div>
+        </div>
+
+        <div class="ranking-list">
+          {% if bloque.resultados %}
+            {% for item in bloque.resultados %}
+            <div class="ranking-item">
+              <div class="ranking-copy">
+                <strong>{{ item.sigla }} · {{ item.nombre }}</strong>
+                <span>{{ item.votos }} votos</span>
+              </div>
+              <div class="ranking-metric">
+                <span>{{ "%.2f"|format(item.porcentaje) }}%</span>
+                <div class="mini-bar">
+                  <i style="width: {{ item.porcentaje }}%;"></i>
+                </div>
+              </div>
+            </div>
+            {% endfor %}
+          {% else %}
+          <p class="empty-state">Aun no hay participaciones acumuladas para este cargo.</p>
+          {% endif %}
+        </div>
+      </article>
+      {% endfor %}
+    </div>
+  </section>
+
+  <a href="{{ url_for('registro') }}" class="secondary-btn">Registrar un nuevo elector</a>
+</section>
+{% endblock %}

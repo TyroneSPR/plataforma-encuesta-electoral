@@ -1,0 +1,89 @@
+{% extends "base.html" %}
+{% set titulo_pagina = "Registro del Elector" %}
+
+{% block content %}
+<section class="card">
+  <div class="card-header">
+    <span class="section-tag">Paso 1</span>
+    <h2>Registro del elector</h2>
+    <p>Seleccione el tipo de documento, ingrese el numero correspondiente y escriba al menos un nombre para continuar.</p>
+  </div>
+
+  <form method="POST" class="form-grid" id="registro-form">
+    {% if error %}
+    <div class="alert">{{ error }}</div>
+    {% endif %}
+
+    <label class="field">
+      <span>Tipo de documento</span>
+      <select name="tipo_documento" id="tipo_documento" required>
+        <option value="">Seleccione una opcion</option>
+        <option value="dni">DNI</option>
+        <option value="ce">Carnet de Extranjeria</option>
+      </select>
+    </label>
+
+    <label class="field">
+      <span>Numero de documento</span>
+      <input
+        type="text"
+        name="documento"
+        id="documento"
+        placeholder="Primero seleccione el tipo de documento"
+        minlength="8"
+        maxlength="9"
+        inputmode="numeric"
+        required
+      >
+    </label>
+
+    <label class="field">
+      <span>Nombre</span>
+      <input
+        type="text"
+        name="nombre"
+        placeholder="Ingrese un nombre"
+        minlength="2"
+        maxlength="80"
+        required
+      >
+    </label>
+
+    <button type="submit" class="primary-btn">Continuar a votacion</button>
+  </form>
+</section>
+
+<script>
+  const tipoDocumento = document.getElementById("tipo_documento");
+  const documento = document.getElementById("documento");
+
+  function actualizarDocumento() {
+    if (tipoDocumento.value === "dni") {
+      documento.placeholder = "Ingrese 8 digitos del DNI";
+      documento.minLength = 8;
+      documento.maxLength = 8;
+      documento.pattern = "\\d{8}";
+      documento.title = "El DNI debe tener exactamente 8 digitos.";
+    } else if (tipoDocumento.value === "ce") {
+      documento.placeholder = "Ingrese 9 digitos del Carnet de Extranjeria";
+      documento.minLength = 9;
+      documento.maxLength = 9;
+      documento.pattern = "\\d{9}";
+      documento.title = "El Carnet de Extranjeria debe tener exactamente 9 digitos.";
+    } else {
+      documento.placeholder = "Primero seleccione el tipo de documento";
+      documento.minLength = 8;
+      documento.maxLength = 9;
+      documento.removeAttribute("pattern");
+      documento.title = "";
+    }
+    documento.value = documento.value.replace(/\D/g, "");
+  }
+
+  tipoDocumento.addEventListener("change", actualizarDocumento);
+  documento.addEventListener("input", () => {
+    documento.value = documento.value.replace(/\D/g, "");
+  });
+  actualizarDocumento();
+</script>
+{% endblock %}

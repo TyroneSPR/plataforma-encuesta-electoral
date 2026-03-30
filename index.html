@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Encuesta Electoral</title>
+    <link rel="stylesheet" href="/styles.css">
+  </head>
+  <body class="ballot-body">
+    <main class="layout">
+      <section class="hero hero-shell">
+        <div class="hero-copy">
+          <p class="eyebrow">Jornada electoral · 12 de abril</p>
+          <h1>Panel de encuesta electoral en vivo</h1>
+          <p class="lead">
+            Registra participantes con nombre y correo, habilita voto por partido o lista
+            en cada seccion y muestra tendencias en tiempo real mientras siguen entrando respuestas.
+          </p>
+          <div class="hero-metrics">
+            <article>
+              <span>Modalidad</span>
+              <strong>1 voto por correo</strong>
+            </article>
+            <article>
+              <span>Visualizacion</span>
+              <strong>Dashboard en vivo</strong>
+            </article>
+          </div>
+        </div>
+        <div class="hero-actions">
+          <a class="dashboard-link" href="/dashboard" target="_blank" rel="noreferrer">Abrir dashboard</a>
+        </div>
+      </section>
+
+      <section class="panel panel-emphasis" id="registration-panel">
+        <div class="panel-head">
+          <div>
+            <p class="section-tag">Acceso del votante</p>
+            <h2>Registro rapido</h2>
+          </div>
+          <span id="registration-status" class="chip">Sin registrar</span>
+        </div>
+        <form id="register-form" class="stack">
+          <label>
+            <span>Nombre completo</span>
+            <input id="name" name="name" type="text" placeholder="Ej. Maria Perez" required>
+          </label>
+          <label>
+            <span>Correo electronico</span>
+            <input id="email" name="email" type="email" placeholder="correo@dominio.com" required>
+          </label>
+          <button class="primary" type="submit">Continuar</button>
+        </form>
+        <p id="register-message" class="message"></p>
+      </section>
+
+      <section class="panel hidden" id="vote-panel">
+        <div class="panel-head">
+          <div>
+            <p class="section-tag">Boleta digital</p>
+            <h2>Selecciona tus partidos</h2>
+          </div>
+          <span id="vote-status" class="chip">Pendiente</span>
+        </div>
+        <form id="vote-form" class="stack"></form>
+        <p id="vote-message" class="message"></p>
+      </section>
+
+      <section class="panel dashboard-preview">
+        <div class="panel-head">
+          <div>
+            <p class="section-tag">Monitoreo</p>
+            <h2>Resumen en vivo</h2>
+          </div>
+          <span id="live-indicator" class="chip live">En vivo</span>
+        </div>
+        <div class="stats" id="summary-cards"></div>
+        <div class="results-grid" id="results-grid"></div>
+      </section>
+    </main>
+
+    <script src="/app.js"></script>
+  </body>
+</html>

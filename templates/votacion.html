@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% set titulo_pagina = etapa.titulo %}
+
+{% block content %}
+<section class="card">
+  <div class="card-header">
+    <div>
+      <span class="section-tag">Paso {{ etapa.numero }}</span>
+      <h2>{{ etapa.titulo }}</h2>
+      <p>{{ etapa.descripcion }}</p>
+    </div>
+    <div class="voter-badge">
+      <span>Elector registrado</span>
+      <strong>{{ votante.nombre }}</strong>
+      <small>{{ votante.documento }}</small>
+    </div>
+  </div>
+
+  {% if error %}
+  <div class="alert">{{ error }}</div>
+  {% endif %}
+
+  <form method="POST">
+    <div class="ballot-grid">
+      {% for partido in partidos %}
+      <label class="ballot-card">
+        <input type="radio" name="partido" value="{{ partido.id }}" required>
+        <span class="ballot-mark"></span>
+        <div class="party-emblem">{{ "%02d"|format(partido.id) }}</div>
+        <div class="party-copy">
+          <strong>{{ partido.nombre }}</strong>
+          <span>Sigla {{ partido.sigla }}</span>
+        </div>
+      </label>
+      {% endfor %}
+    </div>
+
+    <div class="actions">
+      <button type="submit" class="primary-btn">{{ etapa.boton }}</button>
+    </div>
+  </form>
+</section>
+{% endblock %}

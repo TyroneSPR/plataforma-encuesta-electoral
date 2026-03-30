@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{{ titulo_pagina if titulo_pagina else "Encuesta Electoral" }}</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+  <div class="page-shell">
+    <aside class="brand-panel">
+      <div class="brand-card">
+        <span class="eyebrow">Encuesta electoral</span>
+        <h1>Plataforma de votacion con flujo guiado y presentacion institucional.</h1>
+        <p>
+          Interfaz inspirada en procesos formales de registro y emision de voto,
+          pensada para una experiencia clara, ordenada y profesional.
+        </p>
+
+        <div class="progress-block">
+          <div class="progress-label">
+            <span>Avance del proceso</span>
+            <strong>{{ progreso }}/5</strong>
+          </div>
+          <div class="progress-bar">
+            <span style="width: {{ progreso * 20 }}%;"></span>
+          </div>
+        </div>
+
+        <ul class="steps">
+          <li class="{{ 'active' if progreso >= 1 else '' }}">1. Registro del elector</li>
+          <li class="{{ 'active' if progreso >= 2 else '' }}">2. Voto presidencial</li>
+          <li class="{{ 'active' if progreso >= 3 else '' }}">3. Voto senatorial</li>
+          <li class="{{ 'active' if progreso >= 4 else '' }}">4. Voto a diputados</li>
+          <li class="{{ 'active' if progreso >= 5 else '' }}">5. Cierre del proceso</li>
+        </ul>
+      </div>
+    </aside>
+
+    <main class="content-panel">
+      {% block content %}{% endblock %}
+    </main>
+  </div>
+</body>
+</html>
