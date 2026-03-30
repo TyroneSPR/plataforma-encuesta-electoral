@@ -51,6 +51,12 @@
             alt="Logo de Partido Democrata Verde"
             class="party-logo"
           >
+          {% elif partido.id == 5 %}
+          <img
+            src="{{ url_for('static', filename='party-logos/partido-del-buen-gobierno.png') }}"
+            alt="Logo de Partido del Buen Gobierno"
+            class="party-logo"
+          >
           {% else %}
           {{ "%02d"|format(partido.id) }}
           {% endif %}
