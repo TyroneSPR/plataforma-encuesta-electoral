@@ -117,6 +117,12 @@
             alt="Logo de Podemos Peru"
             class="party-logo"
           >
+          {% elif partido.id == 16 %}
+          <img
+            src="{{ url_for('static', filename='party-logos/partido-democrata-federal.jpg') }}"
+            alt="Logo de Partido Democrata Federal"
+            class="party-logo"
+          >
           {% else %}
           {{ "%02d"|format(partido.id) }}
           {% endif %}
